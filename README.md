@@ -13,8 +13,7 @@
 **These files exist for every typeA-panel:**
 
     - list with genes/targets in the panel
-    - BED-file  with regions of interest extracted from
-      the capture's annotated region of interest BED-file
+    - BED-file with regions of interest extracted from the capture's annotated region of interest BED-file
 
 
 # Panels/Captures
