@@ -2,6 +2,7 @@
 ********************************
 
 **These files exist for every capture:**
+
     - list with genes/targets on the capture
     - BED-file  with regions of interest (exonplus20)
     - BED-file  with annotated regions of interest
@@ -10,6 +11,6 @@
 
 
 **These files exist for every typeA-panel:**
+
     - list with genes/targets in the panel
-    - BED-file  with regions of interest extracted from
-      the capture's annotated region of interest BED-file
+    - BED-file with regions of interest extracted from the capture's annotated region of interest BED-file
