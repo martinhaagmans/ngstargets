@@ -82,12 +82,17 @@ class Annotation(object):
             return 'EXTRA_REGIO'
 
     def parse_bed_file(self, bed):
+        genesout = list()
         bedname = os.path.splitext(bed)[0]
         with open(bed, 'r') as f, open('{}.annotated'.format(bedname), 'w') as fout:
             for line in f:
                 chromosome, start, end = line.split()
                 genename = self.get_genename(chromosome, int(start) + 21, int(end) - 20)
                 fout.write('{}\t{}\t{}\t{}\n'.format(chromosome, start, end, genename))
+                genesout.append(genename)
+        if self.genes is not None:
+            notfound = [gene for gene in self.genes if gene not in genesout]
+            print('Niet in BEDfile: {}'.format(' '.join(notfound)))
 
 
 def get_arguments():
