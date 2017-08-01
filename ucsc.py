@@ -84,7 +84,7 @@ class Annotation(object):
                 if len(gout) > 0:
                     return gout[0]
                 elif len(gout) == 0:
-                    return 'NOBUENO'
+                    return 'EXTRA_REGIO'
         elif self.c.rowcount == 0:
             return 'EXTRA_REGIO'
 

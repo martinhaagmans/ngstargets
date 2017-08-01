@@ -9,6 +9,7 @@ CCM2
 DOCK6
 ECEL1
 ENG
+EPCAM
 GDF2
 GLMN
 GNAQ
@@ -19,7 +20,6 @@ KRIT1
 MAP3K3
 MLH1
 MSH2 incl EPCAM laatste 2 exonen i.v.m. deleties
-EPCAM
 MSH6
 MUTYH
 MYBPC1
