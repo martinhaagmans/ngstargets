@@ -1,6 +1,8 @@
 import os
 import MySQLdb
 import argparse
+import logging
+import time
 
 class Annotation(object):
     """Query UCSC genome browser with genomic intervals,
@@ -44,7 +46,9 @@ class Annotation(object):
 
     def _genelist(self, gf):
         with open(gf, 'r') as f:
-            return [line.strip() for line in f]
+            lines = (line.rstrip() for line in f)
+            lines = list(line for line in lines if line)
+            return [l.split()[0] for l in lines]
 
     def get_genename(self, chromosome, start, end, tx=True, cds=False):
         if cds:
@@ -76,8 +80,11 @@ class Annotation(object):
             elif len(out) > 1 and self.genes is None:
                 return [tup[0] for tup in out]
             elif len(out) > 1 and self.genes is not None:
-                out = [tup[0] for tup in out if tup[0] in self.genes]
-                return out[0]
+                gout = [tup[0] for tup in out if tup[0] in self.genes]
+                if len(gout) > 0:
+                    return gout[0]
+                elif len(gout) == 0:
+                    return 'NOBUENO'
         elif self.c.rowcount == 0:
             return 'EXTRA_REGIO'
 
@@ -87,12 +94,21 @@ class Annotation(object):
         with open(bed, 'r') as f, open('{}.annotated'.format(bedname), 'w') as fout:
             for line in f:
                 chromosome, start, end = line.split()
-                genename = self.get_genename(chromosome, int(start) + 21, int(end) - 20)
+                genename = self.get_genename(chromosome, int(start) + 26, int(end) - 25)
                 fout.write('{}\t{}\t{}\t{}\n'.format(chromosome, start, end, genename))
                 genesout.append(genename)
         if self.genes is not None:
             notfound = [gene for gene in self.genes if gene not in genesout]
-            print('Niet in BEDfile: {}'.format(' '.join(notfound)))
+            notrequested = [gene for gene in genesout if gene not in self.genes ]
+            if len (notfound) > 0:
+                notfound.sort()
+                logging.info('Niet in BEDfile: {}'.format(' '.join(notfound)))
+                print('Niet in BEDfile: {}'.format(' '.join(notfound)))
+            if len (notrequested) > 0:
+                notrequested.sort()
+                logging.info('Niet in genlijst: {}'.format(' '.join(set(notrequested))))
+                print('Niet in genlijst: {}'.format(' '.join(set(notrequested))))
+
 
 
 def get_arguments():
@@ -106,13 +122,26 @@ def get_arguments():
 
     return parser.parse_args()
 
+def now():
+    return time.strftime('%H:%M:%S')
+
+def date():
+    return time.strftime('%d/%m/%Y')
+
 def main():
     args = get_arguments()
-    print('Annotating {} @ UCSC'.format(args.bed))
+    logging.basicConfig(filename='{}.annotation.log'.format(args.bed),
+                        format='%(levelname)s:%(message)s',
+                        level=logging.DEBUG,
+                        filemode='w')
+    logging.info('{} {} Annotating {} @ UCSC'.format(date(), now(), args.bed))
+    print('{} {} Annotating {} @ UCSC'.format(date(), now(), args.bed))
     if args.genelist:
         Annotation(genefile=args.genelist).parse_bed_file(args.bed)
     elif not args.genelist:
         Annotation().parse_bed_file(args.bed)
+    logging.info('{} {} Done.'.format(date(), now()))
+    print('{} {} Done.'.format(date(), now()))
 
 if __name__ == '__main__':
     main()

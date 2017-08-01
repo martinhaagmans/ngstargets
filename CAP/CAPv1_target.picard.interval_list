@@ -1,4 +1,4 @@
-@HD	VN:1.0	SO:unsorted		
+@HD	VN:1.5	SO:coordinate
 @SQ	SN:chr1	LN:249250621	UR:file:/home/corona/Desktop/gatk/lifescope.hg19.fa	M5:1b22b98cdeb4a9304cb5d48026a85128
 @SQ	SN:chr2	LN:243199373	UR:file:/home/corona/Desktop/gatk/lifescope.hg19.fa	M5:a0d9851da00400dec1098a9255ac712e
 @SQ	SN:chr3	LN:198022430	UR:file:/home/corona/Desktop/gatk/lifescope.hg19.fa	M5:641e4338fa8d52a5b781bd2a2c08d3c3
@@ -24,6 +24,5 @@
 @SQ	SN:chrX	LN:155270560	UR:file:/home/corona/Desktop/gatk/lifescope.hg19.fa	M5:7e0e2e580297b7764e31dbc80c2540dd
 @SQ	SN:chrY	LN:59373566	UR:file:/home/corona/Desktop/gatk/lifescope.hg19.fa	M5:1e86411d73e6f00a10590f976be01623
 @SQ	SN:chrM	LN:16571	UR:file:/home/corona/Desktop/gatk/lifescope.hg19.fa	M5:d2ed829b8a1628d16cbeee88e88e39eb
-chr1	115575963	115576165	+	 
-chr2	113976089	113976206	+	 
-
+chr1	115575964	115576165	+	.
+chr2	113976090	113976206	+	.

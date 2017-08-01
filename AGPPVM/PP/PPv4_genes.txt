@@ -8,6 +8,7 @@ POLE
 POLD1
 MLH1
 MSH2 incl EPCAM laatste 2 exonen i.v.m. deleties
+EPCAM
 MSH6
 PMS2
 ACVRL1
