@@ -1,8 +1,10 @@
-import os
+import os, sys
 import MySQLdb
 import argparse
 import logging
 import time
+import pandas as pd
+import sqlite3
 
 class Annotation(object):
     """Query UCSC genome browser with genomic intervals,
@@ -109,6 +111,99 @@ class Annotation(object):
                 logging.info('Niet in genlijst: {}'.format(' '.join(set(notrequested))))
                 print('Niet in genlijst: {}'.format(' '.join(set(notrequested))))
 
+class Targets(object):
+
+    def __init__(self, test, bedfile=None):
+        self.targetdir = os.path.abspath(os.path.dirname(__file__))
+        self.db = os.path.join(self.targetdir, 'varia', 'capinfo.sqlite')
+        self.test = test
+        self.df = pd.read_sql('SELECT * FROM capdb WHERE (actief=1)',
+                              con=sqlite3.connect(self.db))
+        if self.df[self.df['genesiscode'] == self.test].empty:
+            print ('Genesiscode voor test bestaat niet in database.')
+            sys.exit()
+
+        self.capture = self.get_capture()
+        self.pakket = self.get_pakket()
+        self.panel = self.get_panel()
+        if bedfile is not None:
+            self.bedfile = bedfile
+            self.bed = self.parse_bed()
+        elif bedfile is None:
+            self.bedfile = None
+
+    def get_capture(self):
+        return ''.join(self.df[self.df['genesiscode'] == self.test]['capture'].values)
+
+    def get_pakket(self):
+        return ''.join(self.df[self.df['genesiscode'] == self.test]['pakket'].values)
+
+    def get_panel(self):
+        return ''.join(self.df[self.df['genesiscode'] == self.test]['panel'].values)
+
+    def delversion(self, withversion):
+        noversion = withversion.split('v')[0]
+        return noversion
+
+    def genelist(self, gf):
+        with open(gf, 'r') as f:
+            lines = (line.rstrip() for line in f)
+            lines = list(line for line in lines if line)
+        return [l.split()[0] for l in lines]
+
+    def get_dir(self):
+        if self.capture == self.pakket:
+            return '{}/{}'.format(self.targetdir, self.delversion(self.capture))
+        elif self.capture != self.pakket:
+            return '{}/{}/{}'.format(self.targetdir, self.delversion(self.capture),
+                                     self.delversion(self.pakket))
+
+    def get_genes(self):
+        return self.genelist('{}/{}_genes.txt'.format(self.get_dir(), self.pakket))
+
+    def get_agenes(self):
+        if self.panel == 'False':
+            return self.get_genes()
+        return self.genelist('{}/corepanels/{}_genes.txt'.format(self.get_dir(), self.panel))
+
+    def get_cgenes(self):
+        genes = self.get_genes()
+        [genes.remove(i) for i in self.get_agenes()]
+        return genes
+
+    def filter_genes_from_df(self, genelist):
+        if self.bedfile is None:
+            raise OSError('Geen BED file opgegeven')
+        else:
+            return self.bed[self.bed.gene.isin(genelist)]
+
+    def parse_bed(self):
+        bed = pd.read_csv(self.bedfile, sep='\t', header=None)
+        bed.columns = ['chromosome', 'start', 'end', 'gene']
+        return bed
+
+    def write_bed(self, df, fout):
+        df.to_csv(fout, index=False, header=False, sep='\t')
+
+    def create_bed_for_pakket(self, genes):
+        dfout = self.filter_genes_from_df(genes)
+        self.write_bed(dfout, '{}/{}_exonplus20.bed'.format(self.get_dir(), self.pakket))
+        print('{} {} Pakket bed created!'.format(date(), now()))
+
+    def create_bed_for_panel(self, genes):
+        try:
+            dfout = self.filter_genes_from_df(genes)
+        except OSError as e:
+            print(e)
+        else:
+            self.write_bed(dfout, '{}/corepanels/{}.bed'.format(self.get_dir(), self.panel))
+            print('{} {} Panel bed created!'.format(date(), now()))
+
+    def create_files_for_test(self):
+        if not self.capture == self.pakket:
+            self.create_bed_for_pakket(self.get_genes())
+        if self.panel != 'False' and self.panel != 'OVRv1':
+            self.create_bed_for_panel(self.get_agenes())
 
 
 def get_arguments():
@@ -119,7 +214,10 @@ def get_arguments():
                         help="BED file",  required=True)
     parser.add_argument("-g", "--genelist", type=str, metavar='',
                         help="File with gene names")
-
+    parser.add_argument("-t", "--testcode", type=str, metavar='',
+                        help="Genesiscode for test")
+    parser.add_argument("-c", "--createfiles", action='store_true',
+                        help="Create files for pakket and or panel")
     return parser.parse_args()
 
 def now():
@@ -130,6 +228,22 @@ def date():
 
 def main():
     args = get_arguments()
+    if args.bed:
+        bed, extension = os.path.splitext(args.bed)
+        if extension == '.bed':
+            annotate(args)
+            args.bed = '{}.annotated'.format(bed)
+    if args.createfiles:
+        if not args.testcode:
+            print ('Geen genesiscode opgegeven.')
+            sys.exit()
+        if not args.bed:
+            print ('Geen bedfile opgegeven.')
+        print('{} {} Creating files'.format(date(), now()))
+        Targets(args.testcode, args.bed).create_files_for_test()
+
+
+def annotate(args):
     logging.basicConfig(filename='{}.annotation.log'.format(args.bed),
                         format='%(levelname)s:%(message)s',
                         level=logging.DEBUG,
