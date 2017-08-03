@@ -90,6 +90,30 @@ class Annotation(object):
         elif self.c.rowcount == 0:
             return 'EXTRA_REGIO'
 
+    def get_region(self, gene, tx=True, cds=False):
+        if cds:
+            tx = False
+
+        txsql = """SELECT DISTINCT chrom, txStart, txEnd
+        FROM refGene
+        WHERE name2='{g}'
+        """.format(g=gene)
+
+        cdssql = """SELECT DISTINCT chrom, cdsStart, cdsEnd
+        FROM refGene
+        WHERE name2='{g}'
+        """.format(g=gene)
+
+        if tx and not cds:
+            self.c.execute(txsql)
+        elif cds and not tx:
+            self.c.execute(cdssql)
+        generegions = list()
+        for i in self.c.fetchall():
+            generegions.append([i[0], i[1], i[2]])
+        return [ii for ii in generegions]
+
+
     def parse_bed_file(self, bed):
         genesout = list()
         bedname = os.path.splitext(bed)[0]
@@ -198,6 +222,17 @@ class Targets(object):
         else:
             self.write_bed(dfout, '{}/corepanels/{}.bed'.format(self.get_dir(), self.panel))
             print('{} {} Panel bed created!'.format(date(), now()))
+
+    def get_generegion(self, gene):
+        return Annotation().get_region(gene)
+
+    def create_bed_for_generegion(self):
+        genebed = '{}/{}_generegions.bed'.format(self.get_dir(), self.pakket)
+        with open(genebed, 'w') as fout:
+            for g in self.get_genes():
+                regions = self.get_generegion(g)
+                for region in regions:
+                    fout.write('{}\t{}\t{}\n'.format(region[0], region[1], region[2]))
 
     def create_files_for_test(self):
         if not self.capture == self.pakket:
