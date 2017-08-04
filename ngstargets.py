@@ -210,9 +210,14 @@ class Targets(object):
         df.to_csv(fout, index=False, header=False, sep='\t')
 
     def create_bed_for_pakket(self, genes):
-        dfout = self.filter_genes_from_df(genes)
-        self.write_bed(dfout, '{}/{}_exonplus20.bed'.format(self.get_dir(), self.pakket))
-        print('{} {} Pakket bed created!'.format(date(), now()))
+        try:
+            dfout = self.filter_genes_from_df(genes)
+        except OSError as e:
+            print(e)
+        else:
+            self.write_bed(dfout, '{}/{}_exonplus20.bed'.format(self.get_dir(),
+                                                                self.pakket))
+            print('{} {} Pakket bed created!'.format(date(), now()))
 
     def create_bed_for_panel(self, genes):
         try:
@@ -220,7 +225,8 @@ class Targets(object):
         except OSError as e:
             print(e)
         else:
-            self.write_bed(dfout, '{}/corepanels/{}.bed'.format(self.get_dir(), self.panel))
+            self.write_bed(dfout, '{}/corepanels/{}.bed'.format(self.get_dir(),
+                                                                self.panel))
             print('{} {} Panel bed created!'.format(date(), now()))
 
     def get_generegion(self, gene):
