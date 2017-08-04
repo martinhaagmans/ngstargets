@@ -143,8 +143,7 @@ class Targets(object):
         self.df = pd.read_sql('SELECT * FROM capdb WHERE (actief=1)',
                               con=sqlite3.connect(self.db))
         if self.df[self.df['genesiscode'] == self.test].empty:
-            print ('Genesiscode voor test bestaat niet in database.')
-            sys.exit()
+            raise NameError('Genesiscode voor test bestaat niet in database.')
 
         self.capture = self.get_capture()
         self.pakket = self.get_pakket()
@@ -313,8 +312,7 @@ def main():
             args.bed = '{}.annotated'.format(bed)
     if args.createfiles:
         if not args.testcode:
-            print ('Geen genesiscode opgegeven.')
-            sys.exit()
+            raise IOError('Geen genesiscode opgegeven.')
         if not args.bed:
             print ('Geen bedfile opgegeven.')
         print('{} {} Creating files'.format(date(), now()))
