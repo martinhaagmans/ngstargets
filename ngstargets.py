@@ -1,10 +1,9 @@
-import os, sys
+import os, sys, time, argparse, logging
 import MySQLdb
-import argparse
-import logging
 import time
 import pandas as pd
 import sqlite3
+import json
 
 class Annotation(object):
     """Query UCSC genome browser with genomic intervals,
@@ -182,18 +181,55 @@ class Targets(object):
             return '{}/{}/{}'.format(self.targetdir, self.delversion(self.capture),
                                      self.delversion(self.pakket))
 
-    def get_genes(self):
+    def get_genes_from_file(self):
         return self.genelist('{}/{}_genes.txt'.format(self.get_dir(), self.pakket))
 
-    def get_agenes(self):
+    def get_agenes_from_file(self):
         if self.panel == 'False':
-            return self.get_genes()
+            return self.get_genes_from_file()
         return self.genelist('{}/corepanels/{}_genes.txt'.format(self.get_dir(), self.panel))
 
-    def get_cgenes(self):
-        genes = self.get_genes()
-        [genes.remove(i) for i in self.get_agenes()]
+    def get_cgenes_from_file(self):
+        genes = self.get_genes_from_file()
+        [genes.remove(i) for i in self.get_agenes_from_file()]
         return genes
+
+    def get_size(self, df):
+        size = pd.Series(df['end'] - df['start'])
+        return size.sum()
+
+    def update_gene_database(self):
+        genes = self.get_genes_from_file()
+        agenes = self.get_agenes_from_file()
+
+        if self.panel == 'False':
+            genes = json.dumps(genes)
+            capsize = self.get_size(self.bed)
+            pakketsize = self.get_size(agenes)
+            sql ='''INSERT INTO genes
+            (genesiscode, capture, pakket, panel, capturesize, pakketsize, genen)
+            VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}')
+            '''.format(self.test, self.capture, self.pakket, self.panel,
+            capsize, pakketsize, genes)
+
+        elif self.panel != 'False':
+            capsize = self.get_size(self.bed)
+            pakketsize = self.get_size(self.filter_genes_from_df(genes))
+            panelsize = self.get_size(self.filter_genes_from_df(agenes))
+            genes = json.dumps(genes)
+            agenes = json.dumps(agenes)
+
+            if self.panel == 'OVRv1' or self.panel == 'BMUTtypeAv1':
+                cgenes = genes
+            else:
+                cgenes = json.dumps(self.get_cgenes_from_file())
+            sql = '''INSERT INTO genes
+            (genesiscode, capture, pakket, panel, capturesize, pakketsize, panelsize, genen, agenen, cgenen)
+            VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')
+            '''.format(self.test, self.capture, self.pakket, self.panel, capsize,
+                       pakketsize, panelsize, genes, agenes, cgenes)
+        print(sql)
+        # c.execute(sql)
 
     def filter_genes_from_df(self, genelist):
         if self.bedfile is None:
@@ -235,16 +271,17 @@ class Targets(object):
     def create_bed_for_generegion(self):
         genebed = '{}/{}_generegions.bed'.format(self.get_dir(), self.pakket)
         with open(genebed, 'w') as fout:
-            for g in self.get_genes():
+            for g in self.get_genes_from_file():
                 regions = self.get_generegion(g)
                 for region in regions:
                     fout.write('{}\t{}\t{}\n'.format(region[0], region[1], region[2]))
 
     def create_files_for_test(self):
         if not self.capture == self.pakket:
-            self.create_bed_for_pakket(self.get_genes())
+            self.create_bed_for_pakket(self.get_genes_from_file())
         if self.panel != 'False' and self.panel != 'OVRv1':
-            self.create_bed_for_panel(self.get_agenes())
+            self.create_bed_for_panel(self.get_agenes_from_file())
+        self.update_gene_database()
 
 
 def get_arguments():
