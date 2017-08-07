@@ -134,7 +134,7 @@ class Annotation(object):
                 logging.info('Niet in genlijst: {}'.format(' '.join(set(notrequested))))
                 print('Niet in genlijst: {}'.format(' '.join(set(notrequested))))
 
-class Targets(object):
+class TargetFiles(object):
 
     def __init__(self, test, bedfile=None):
         self.targetdir = os.path.abspath(os.path.dirname(__file__))
@@ -199,17 +199,21 @@ class Targets(object):
 
     def update_gene_database(self):
         genes = self.get_genes_from_file()
-        agenes = self.get_agenes_from_file()
+
+        if self.panel == 'OVRv1' or self.panel == 'BMUTtypeAv1':
+            agenes = []
+        else:
+            agenes = self.get_agenes_from_file()
 
         if self.panel == 'False':
             genes = json.dumps(genes)
             capsize = self.get_size(self.bed)
-            pakketsize = self.get_size(agenes)
+            pakketsize = self.get_size(self.filter_genes_from_df(agenes))
             sql ='''INSERT INTO genes
-            (genesiscode, capture, pakket, panel, capturesize, pakketsize, genen)
-            VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}')
+            (genesiscode, capture, pakket, panel, capturesize, pakketsize, genen, agenen, cgenen)
+            VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')
             '''.format(self.test, self.capture, self.pakket, self.panel,
-            capsize, pakketsize, genes)
+            capsize, pakketsize, genes, json.dumps([]), json.dumps([]))
 
         elif self.panel != 'False':
             capsize = self.get_size(self.bed)
@@ -227,8 +231,9 @@ class Targets(object):
             VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')
             '''.format(self.test, self.capture, self.pakket, self.panel, capsize,
                        pakketsize, panelsize, genes, agenes, cgenes)
-        print(sql)
-        # c.execute(sql)
+
+        TargetDatabase().change(sql)
+
 
     def filter_genes_from_df(self, genelist):
         if self.bedfile is None:
@@ -264,14 +269,14 @@ class Targets(object):
                                                                 self.panel))
             print('{} {} Panel bed created!'.format(date(), now()))
 
-    def get_generegion(self, gene):
+    def get_generegion_from_ucsc(self, gene):
         return Annotation().get_region(gene)
 
     def create_bed_for_generegion(self):
         genebed = '{}/{}_generegions.bed'.format(self.get_dir(), self.pakket)
         with open(genebed, 'w') as fout:
             for g in self.get_genes_from_file():
-                regions = self.get_generegion(g)
+                regions = self.get_generegion_from_ucsc(g)
                 for region in regions:
                     fout.write('{}\t{}\t{}\n'.format(region[0], region[1], region[2]))
 
@@ -281,6 +286,40 @@ class Targets(object):
         if self.panel != 'False' and self.panel != 'OVRv1':
             self.create_bed_for_panel(self.get_agenes_from_file())
         self.update_gene_database()
+
+class TargetDatabase(object):
+
+    def __init__(self):
+        self.db = 'varia/capinfo.sqlite'
+        self.conn = sqlite3.connect(self.db)
+        self.c = self.conn.cursor()
+        self.tables = ['capdb', 'genes']
+
+    def change(self, sql):
+        self.c.execute(sql)
+        self.conn.commit()
+
+    def __del__(self):
+        self.conn.close()
+
+    def get_all_info_for_test(self, test):
+        info = dict()
+        for table in self.tables:
+            sql = "SELECT * FROM {} WHERE genesiscode = '{}'".format(table, test)
+            self.c.execute(sql)
+            names = [description[0] for description in self.c.description]
+            out = [val for tup in self.c.fetchall() for val in tup]
+            d = dict()
+            for i, name in enumerate(names):
+                try:
+                    out[i] = json.loads(out[i])
+                except (json.JSONDecodeError, TypeError) as e:
+                    pass
+                d[name] = out[i]
+            info[table] = d
+        return info
+
+
 
 
 def get_arguments():
