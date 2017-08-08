@@ -302,6 +302,28 @@ class TargetDatabase(object):
     def __del__(self):
         self.conn.close()
 
+    def get_all_tests(self):
+        self.c.execute('SELECT genesiscode FROM capdb')
+        return [val for test in self.c.fetchall() for val in test]
+
+    def check_test_exists(self, test):
+        tests = self.get_all_tests()
+        if test not in tests:
+            raise NameError('Genesiscode {} bestaat niet'.format(test))
+
+    def get_active_capture_for_test(self, test):
+        self.check_test_exists(test)
+        sql = '''SELECT capture, pakket, panel, aandoening
+        FROM capdb WHERE (genesiscode = '{}' and actief = 1)
+        '''.format(test)
+        self.c.execute(sql)
+        names = [description[0] for description in self.c.description]
+        out = [val for tup in self.c.fetchall() for val in tup]
+        info = dict()
+        for i, name in enumerate(names):
+            info[name] = out[i]
+        return info
+
     def get_all_info_for_test(self, test):
         info = dict()
         for table in self.tables:
