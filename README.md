@@ -1,18 +1,20 @@
 # Targets for NGS-pipeline
 ********************************
 
-**These files exist for every capture:**
+**For every capture:**
 
-    - list with genes/targets on the capture
-    - BED-file  with regions of interest (exonplus20)
-    - BED-file  with annotated regions of interest
-    - BED-file with transcription region for genes of interest
-    - picard interval lists for target regions
+    - BED-file  with regions of interest _target.bed 
+    - BED-file  with annotated regions of interest _target.annotated
+    - BED-file with transcription region for genes of interest _genes.bed
+    - picard interval lists for target regions _target.interval_list
 
+**For every pakket:**
 
-**These files exist for every typeA-panel:**
+    - BED-file with regions of interest extracted from the capture's annotated region of interest BED-file
+    - BED-file with transcription region for genes of interest _genes.bed
 
-    - list with genes/targets in the panel
+**For every panel:**
+
     - BED-file with regions of interest extracted from the capture's annotated region of interest BED-file
 
 
