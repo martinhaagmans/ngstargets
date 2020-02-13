@@ -1,0 +1,11 @@
+Wel in lijst, niet in BED:
+Geen
+
+Wel in BED, niet in lijst:
+ADRB2, NOGENE
+
+Niet in genregio:
+chr5:148209136-148209522
+chr5:148212430-148212830
+chr5:148223190-148223653
+chr5:148292581-148292965
