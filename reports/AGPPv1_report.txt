@@ -1,0 +1,9 @@
+Wel in lijst, niet in BED:
+GREM1
+
+Wel in BED, niet in lijst:
+NOGENE
+
+Niet in genregio:
+chr10:88515856-88516415
+chr15:32991707-32994708
