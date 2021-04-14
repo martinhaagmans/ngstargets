@@ -1,0 +1,8 @@
+Wel in lijst, niet in BED:
+GREM1 = klopt, id dup MH
+
+Wel in BED, niet in lijst:
+NOGENE, EPCAM - Klopt, nogene veranderd in gen, EPCAM voor MSH2 del veranderd in MSH2 MH
+
+Niet in genregio:
+chr15:32991707-32994708 - Klopt, is GREM1 dup MH
