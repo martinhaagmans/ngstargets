@@ -1,0 +1,11 @@
+Wel in lijst, niet in BED:
+TNNI3K
+
+Wel in BED, niet in lijst:
+TNNI3K/FPGT-TNNI3K
+
+Niet in genregio:
+Geen
+
+
+TNNI3K en FPGT-TNNI3K overlappen, alles FPGT-TNNI3K genoemd in BED - MH
