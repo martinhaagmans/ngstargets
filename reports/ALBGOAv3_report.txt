@@ -1,0 +1,10 @@
+Wel in lijst, niet in BED:
+WDR63
+
+Wel in BED, niet in lijst:
+DNAI3
+
+Niet in genregio:
+Geen
+
+WDR63 = DNAI3 - MH
