@@ -1,0 +1,10 @@
+Wel in lijst, niet in BED:
+Geen
+
+Wel in BED, niet in lijst:
+DUOXA1/DUOXA2
+Overlap targets -> DUOXA2 gekozen voor annotatie - MH
+
+Niet in genregio:
+Geen
+
