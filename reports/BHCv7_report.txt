@@ -1,0 +1,15 @@
+Wel in lijst, niet in BED:
+Geen.
+
+Wel in BED, niet in lijst:
+NOGENE, LINC01476
+Gebieden alleen voor CNV - hernoemd naar CNV_chr17 - MH
+
+Niet in genregio:
+chr17:57496387-57496711
+chr17:57498418-57498734
+chr17:57500535-57500857
+chr17:57502603-57502928
+chr17:57504849-57505197
+chr17:57507528-57507782
+Gebieden alleen voor CNV - uit BHCv7_generegions.bed gehaald - MH

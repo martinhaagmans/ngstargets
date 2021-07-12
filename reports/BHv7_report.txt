@@ -1,0 +1,11 @@
+Wel in lijst, niet in BED:
+Geen
+
+Wel in BED, niet in lijst:
+NOGENE --> SNP posities, hernoemd naar SNP - MH
+
+Niet in genregio:
+chr6:100040886-100040926
+chr6:100040954-100041007
+chr6:100041020-100041060
+chr6:100046763-100046824
